@@ -1,12 +1,14 @@
 import numpy as np
+import math
 import matplotlib.pyplot as plt
 
 # Load training and testing data
-from Classification.utils import PCA, join_min_max, split_set, remove_outliers
+from ML_ex01.Classification.utils import PCA, join_min_max, split_set, remove_outliers
 
 X_train = np.loadtxt('X_train.csv', delimiter=',', skiprows=1)
 X_test = np.loadtxt('X_test.csv', delimiter=',', skiprows=1)
 y_train = np.loadtxt('y_train.csv', delimiter=',', skiprows=1)[:,1]
+
 
 def score(X_val, y_val, X_train, y_train):
     return 1 - sum((get_bayes_prediction(X_train,y_train, X_val) - y_val)**2) / sum((y_val - np.mean(y_val))**2)
@@ -37,14 +39,10 @@ def get_bayes_prediction(X_temp, y_temp, X_val):
 
     return np.mean(predictions, axis=0)
 
+X_train = np.delete(X_train, [2,5], axis=1)
+X_test = np.delete(X_test, [2,5], axis=1)
 
-# reduced = reduce_dimensions([X_train,X_test],X_train.shape[1], 3)
-# X_train, X_test = np.real(reduced[0].T), np.real(reduced[1].T)
-
-# X_train = np.delete(X_train, [2,5], axis=1)
-# X_test = np.delete(X_test, [2,5], axis=1)
-
-X_train, X_test = join_min_max(X_train, X_test)
+# X_train, X_test = join_min_max(X_train, X_test)
 X_temp, y_temp, X_val, Y_val = split_set(X_train, y_train, 40)
 
 X_temp, y_temp = remove_outliers(X_temp, y_temp, 3)
