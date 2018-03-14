@@ -4,6 +4,8 @@ import numpy as np
 
 
 def LDA(dataset, y, initial_dim, target_dim):
+
+    # Split the training dataset given the two classes
     data = {0: [], 1: []}
     for i in range(y.shape[0]):
         if y[i] == 2:
@@ -14,67 +16,45 @@ def LDA(dataset, y, initial_dim, target_dim):
     data[0] = np.array(data[0])
     data[1] = np.array(data[1])
 
-    mean_vectors = []
-    for cl in range(2):
-        mean_vectors.append(np.mean(data[cl], axis=0))
+    # Calculate mean feature values per each class
+    class_mean = []
+    for cls in range(2):
+        class_mean.append(np.mean(data[cls], axis=0))
 
-    S_W = np.zeros((initial_dim, initial_dim))
-    for cl, mv in zip(range(2), mean_vectors):
-        class_sc_mat = np.zeros((initial_dim, initial_dim))  # scatter matrix for every class
-        for row in data[cl]:
-            row, mv = row.reshape(initial_dim, 1), mv.reshape(initial_dim, 1)  # make column vectors
-            class_sc_mat += (row - mv).dot((row - mv).T)
-        S_W += class_sc_mat
+    # Compute the within class deviation from the mean
+    within_class_matrix = np.zeros((initial_dim, initial_dim))
+    for cls, mean_value in zip(range(2), class_mean):
+        diff_accum_matrix = np.zeros((initial_dim, initial_dim))
+        for row in data[cls]:
+            row, mean_value = row.reshape(initial_dim, 1), mean_value.reshape(initial_dim, 1)
+            diff_accum_matrix += (row - mean_value).dot((row - mean_value).T)
+        within_class_matrix += diff_accum_matrix
 
-    overall_mean = np.mean(dataset[0], axis=0)
+    # Compute the deviation of each class from the overall mean
+    total_mean = np.mean(dataset[0], axis=0)
+    total_mean = total_mean.reshape(initial_dim, 1)
 
-    S_B = np.zeros((initial_dim, initial_dim))
-    for i, mean_vec in enumerate(mean_vectors):
+    between_class_matrix = np.zeros((initial_dim, initial_dim))
+    for i, mean_vector in enumerate(class_mean):
         n = data[i].shape[0]
-        mean_vec = mean_vec.reshape(initial_dim, 1)  # make column vector
-        overall_mean = overall_mean.reshape(initial_dim, 1)  # make column vector
-        S_B += n * (mean_vec - overall_mean).dot((mean_vec - overall_mean).T)
-    # print('between-class Scatter Matrix:\n', S_B)
+        mean_vector = mean_vector.reshape(initial_dim, 1)
+        between_class_matrix += n * (mean_vector - total_mean).dot((mean_vector - total_mean).T)
 
-    eig_vals, eig_vecs = np.linalg.eig(np.linalg.inv(S_W).dot(S_B))
-
-    for i in range(len(eig_vals)):
-        eigvec_sc = eig_vecs[:, i].reshape(initial_dim, 1)
-        # print('\nEigenvector {}: \n{}'.format(i + 1, eigvec_sc.real))
-        # print('Eigenvalue {:}: {:.2e}'.format(i + 1, eig_vals[i].real))
-
-    for i in range(len(eig_vals)):
-        eigv = eig_vecs[:, i].reshape(initial_dim, 1)
-        np.testing.assert_array_almost_equal(np.linalg.inv(S_W).dot(S_B).dot(eigv),
-                                             eig_vals[i] * eigv,
-                                             decimal=6, err_msg='', verbose=True)
-    print('ok')
+    eig_values, eig_vectors = np.linalg.eig(np.linalg.inv(within_class_matrix).dot(between_class_matrix))
 
     # Make a list of (eigenvalue, eigenvector) tuples
-    eig_pairs = [(np.abs(eig_vals[i]), eig_vecs[:, i]) for i in range(len(eig_vals))]
+    eig_tuples = [(np.abs(eig_values[i]), eig_vectors[:, i]) for i in range(len(eig_values))]
 
-    # Sort the (eigenvalue, eigenvector) tuples from high to low
-    eig_pairs = sorted(eig_pairs, key=lambda k: k[0], reverse=True)
+    # Sort the (eigenvalue, eigenvector) tuples
+    eig_tuples = sorted(eig_tuples, key=lambda k: k[0], reverse=True)
 
-    # Visually confirm that the list is correctly sorted by decreasing eigenvalues
-
-    # print('Eigenvalues in decreasing order:\n')
-    # for i in eig_pairs:
-        # print(i[0])
-
-    # print('Variance explained:\n')
-    # eigv_sum = sum(eig_vals)
-    # for i, j in enumerate(eig_pairs):
-        # print('eigenvalue {0:}: {1:.2%}'.format(i + 1, (j[0] / eigv_sum).real))
-
-    W = eig_pairs[0][1].reshape(initial_dim, 1)
+    weight_matrix = eig_tuples[0][1].reshape(initial_dim, 1)
     for i in range(1,target_dim):
-        W = np.hstack((W, eig_pairs[i][1].reshape(initial_dim, 1)))
-    # print('Matrix W:\n', W.real)
+        weight_matrix = np.hstack((weight_matrix, eig_tuples[i][1].reshape(initial_dim, 1)))
 
     result = []
     for set in dataset:
-        result.append(set.dot(W))
+        result.append(set.dot(weight_matrix))
 
     return result
 
@@ -83,12 +63,12 @@ def LDA(dataset, y, initial_dim, target_dim):
 def PCA(dataset, initial_dim, target_dim):
     cov = np.cov(dataset[0].T)
 
-    eig_val, eig_vec = np.linalg.eig(cov)
+    eig_vals, eig_vec = np.linalg.eig(cov)
 
     # Make a list of (eigenvalue, eigenvector) tuples
-    eig_pairs = [(np.abs(eig_val[i]), eig_vec[:, i]) for i in range(len(eig_val))]
+    eig_pairs = [(np.abs(eig_vals[i]), eig_vec[:, i]) for i in range(len(eig_vals))]
 
-    # Sort the (eigenvalue, eigenvector) tuples from high to low
+    # Sort the (eigenvalue, eigenvector) tuples
     eig_pairs.sort(key=lambda x: x[0], reverse=True)
 
     matrix_w = eig_pairs[0][1].reshape(initial_dim, 1)
@@ -177,4 +157,4 @@ def remove_outliers(X_train, y_train, std=3):
     return np.delete(X_train, delete, axis=0), np.delete(y_train, delete, axis=0)
 
 if __name__ == "__main__":
-    compare('submissions/my_submission_NB_sel.csv', 'submissions/my_submission_NB_sel_.csv')
+    compare('my_submission_log_reg_orig.csv', 'my_submission_log_reg_best.csv')

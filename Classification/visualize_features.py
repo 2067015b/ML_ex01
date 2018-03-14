@@ -2,7 +2,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 import math
 
-from Classification.utils import normalize_data
+from ML_ex01.Classification.utils import normalize_data
 
 X = np.loadtxt('X_train.csv', delimiter=',', skiprows=1)
 X_test = np.loadtxt('X_test.csv', delimiter=',', skiprows=1)
@@ -21,9 +21,9 @@ data[0] = np.array(data[0])
 data[1] = np.array(data[1])
 
 
-fig, axes = plt.subplots(nrows=6, ncols=2, figsize=(12,36))
+fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(12,36))
 
-for ax,cnt in zip(axes.ravel(), range(100,112)):
+for ax,cnt in zip(axes.ravel(), range(100,104)):
 
     # set bin sizes
     min_b = math.floor(np.min(X[:,cnt]))
@@ -44,7 +44,7 @@ for ax,cnt in zip(axes.ravel(), range(100,112)):
     leg.get_frame().set_alpha(0.5)
     ax.set_ylim([0, max(ylims)+2])
     ax.set_xlabel(str(cnt))
-    ax.set_title('Iris histogram #%s' %str(cnt+1))
+    #ax.set_title('Iris histogram #%s' %str(cnt+1))
 
     # hide axis ticks
     ax.tick_params(axis="both", which="both", bottom="off", top="off",
@@ -59,6 +59,5 @@ for ax,cnt in zip(axes.ravel(), range(100,112)):
 axes[0][0].set_ylabel('count')
 axes[1][0].set_ylabel('count')
 
-fig.tight_layout()
-
+# fig.tight_layout()
 plt.show()
