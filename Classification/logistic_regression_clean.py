@@ -60,7 +60,7 @@ def train_model(X_train, y_train, l_rate=0.5, n_epoch=50000):
     return weights
 
 # Train the model using SGD and a L2 regularization
-def train_model_l2(X_train, y_train, l_rate=0.1, n_epoch=15000, lam=0.001, decay=0.999):
+def train_model_l2(X_train, y_train, l_rate=0.1, n_epoch=5000, lam=0.001, decay=0.999):
     # Add the intercept
     X_train = np.concatenate((np.ones((X_train.shape[0], 1)), X_train), axis=1)
     # Initialize the weights
@@ -90,7 +90,7 @@ def train_model_l2(X_train, y_train, l_rate=0.1, n_epoch=15000, lam=0.001, decay
     return weights
 
 # Train the model using SGD and L1 regularization
-def train_model_l1(X_train, y_train, l_rate=0.1, n_epoch=300, lam=0.0001, decay=0.999):
+def train_model_l1(X_train, y_train, l_rate=0.1, n_epoch=5000, lam=0.001, decay=0.999):
     # Add the intercept
     X_train = np.concatenate((np.ones((X_train.shape[0], 1)), X_train), axis=1)
     # Initialize the weights
@@ -127,8 +127,8 @@ def train_model_l1(X_train, y_train, l_rate=0.1, n_epoch=300, lam=0.0001, decay=
 
 # ============================================= CODE =============================================================
 
-test_model = True
-VAL_ITER = 1
+test_model = False
+VAL_ITER = 3
 
 # Load testing and training data
 X_train = np.loadtxt('X_train.csv', delimiter=',', skiprows=1)
