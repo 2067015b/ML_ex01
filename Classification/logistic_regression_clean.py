@@ -5,12 +5,14 @@ import numpy as np
 # ============================================= HELPER FUNCTIONS ==================================================
 
 def normalize_data(X_train, X_test):
+    """ Normalize all feature values with respect to its maximum """
     maximums_1 = X_train.max(axis=0)
     maximums_2 = X_test.max(axis=0)
     maximums = np.stack((maximums_1, maximums_2), axis=1).max(axis=1)
     return X_train / maximums, X_test / maximums
 
 def split_set(x, y, val_size):
+    """ Split the given training set into a validation and training set. """
     val_indices = random.sample(range(len(y)), k=val_size)
 
     X_val = x[val_indices, :]
@@ -21,8 +23,8 @@ def split_set(x, y, val_size):
 
     return X_temp, y_temp, X_val, Y_val
 
-# Return the percentage of correct predictions
 def evaluate(predictions, gt):
+    """ Evaluation function that returns the percentage of correct predictions """
     correct = 0
     for val_0, val_1 in zip(predictions, gt):
         if val_0 == val_1:
@@ -30,15 +32,16 @@ def evaluate(predictions, gt):
 
     return correct / float(len(gt))
 
-# Sigmoid activation function
 def predict(datapoint, weights):
+    """ Sigmoid activation function """
     pred = 0
     for i in range(len(datapoint)):
         pred += weights[i] * datapoint[i]
     return 1.0 / (1.0 + np.exp(-pred))
 
-# Train the model using SGC
 def train_model(X_train, y_train, l_rate=0.5, n_epoch=50000):
+    """ Train the model using gradient descent """
+
     # Add the intercept
     X_train = np.concatenate((np.ones((X_train.shape[0], 1)), X_train), axis=1)
 
@@ -61,6 +64,7 @@ def train_model(X_train, y_train, l_rate=0.5, n_epoch=50000):
 
 # Train the model using SGD and a L2 regularization
 def train_model_l2(X_train, y_train, l_rate=0.1, n_epoch=5000, lam=0.001, decay=0.999):
+    """ Function to rain the model using SGD and L2 regularization """
     # Add the intercept
     X_train = np.concatenate((np.ones((X_train.shape[0], 1)), X_train), axis=1)
     # Initialize the weights
@@ -89,8 +93,8 @@ def train_model_l2(X_train, y_train, l_rate=0.1, n_epoch=5000, lam=0.001, decay=
             l_rate *= decay
     return weights
 
-# Train the model using SGD and L1 regularization
 def train_model_l1(X_train, y_train, l_rate=0.1, n_epoch=5000, lam=0.001, decay=0.999):
+    """ Function to rain the model using SGD and L1 regularization """
     # Add the intercept
     X_train = np.concatenate((np.ones((X_train.shape[0], 1)), X_train), axis=1)
     # Initialize the weights

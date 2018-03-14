@@ -8,6 +8,7 @@ FEATURES_TO_KEEP = [24, 26, 25, 27, 36, 0, 1, 2, 11, 6, 8, 18, 45, 47, 58, 60, 1
 # =========================================== HELPER FUNCTIONS =========================================================
 
 def LDA(dataset, y, initial_dim, target_dim):
+    """ Perform Linear Discriminant Analysis """
 
     # Split the training dataset given the two classes
     data = {0: [], 1: []}
@@ -63,6 +64,8 @@ def LDA(dataset, y, initial_dim, target_dim):
     return result
 
 def split_set(x, y, val_size):
+    """ Split the given training set into a validation and training set. """
+
     val_indices = random.sample(range(len(y)), k=val_size)
 
     X_val = x[val_indices, :]
@@ -75,14 +78,15 @@ def split_set(x, y, val_size):
 
 
 def normalize_data(X_train, X_test):
+    """ Normalize all feature values with respect to its maximum """
     maximums_1 = X_train.max(axis=0)
     maximums_2 = X_test.max(axis=0)
     maximums = np.stack((maximums_1, maximums_2), axis=1).max(axis=1)
     return X_train / maximums, X_test / maximums
 
 
-# Return the percentage of correct predictions
 def evaluate(predictions, gt):
+    """ Evaluation function that returns the percentage of correct predictions """
     correct = 0
     for val_0, val_1 in zip(predictions, gt):
         if val_0 == val_1:
@@ -91,8 +95,8 @@ def evaluate(predictions, gt):
     return correct / float(len(gt))
 
 
-# Fit model and predict test values using the Naive Bayes Gaussian model
 def get_predictions(X_train, y_train, X_test):
+    """ Fit model and predict test values using the Naive Bayes Gaussian model """
 
     sorted = [[x for x, label in zip(X_train, y_train) if label == cls] for cls in [1,2]]
     model = np.array([np.c_[np.mean(cls, axis=0), np.std(cls, axis=0)]

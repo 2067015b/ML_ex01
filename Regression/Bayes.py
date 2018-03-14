@@ -1,24 +1,49 @@
+import random
+
 import numpy as np
 import math
-from ML_ex01.Classification.utils import split_set, remove_outliers
+
+# =============================================== HELPER FUNCTIONS =====================================================
+
+def split_set(x, y, val_size):
+    """ Split the given training set into a validation and training set. """
+    val_indices = random.sample(range(len(y)), k=val_size)
+
+    X_val = x[val_indices, :]
+    Y_val = y[val_indices]
+
+    y_temp = np.delete(y, val_indices, axis=0)
+    X_temp = np.delete(x, val_indices, axis=0)
+
+    return X_temp, y_temp, X_val, Y_val
 
 
+def normalize_data(X_train, X_test):
+    """ Normalize all feature values with respect to its maximum """
+    maximums_1 = X_train.max(axis=0)
+    maximums_2 = X_test.max(axis=0)
+    maximums = np.stack((maximums_1, maximums_2), axis=1).max(axis=1)
+    return X_train / maximums, X_test / maximums
 
-# Set if the model is being evaluated
-evaluate = False
-VAL_EPOCHS = 30
+def remove_outliers(X_train, y_train, std=3):
+    """ Remove any outlier data points with features outside of std * the standard deviation """
+    prior_mean = np.mean(X_train, axis=0)
+    prior_std = np.std(X_train, axis=0)
 
-# Load training and testing data
-X_train = np.loadtxt('X_train.csv', delimiter=',', skiprows=1)
-X_test = np.loadtxt('X_test.csv', delimiter=',', skiprows=1)
-y_train = np.loadtxt('y_train.csv', delimiter=',', skiprows=1)[:,1]
+    delete = []
+    for data_point in range(X_train.shape[0]):
+        for feature in range(X_train.shape[1]):
+            if abs(X_train[data_point, feature] - prior_mean[feature]) > prior_std[feature]*std:
+                delete.append(data_point)
 
-# RMSE scoring function
+    return np.delete(X_train, delete, axis=0), np.delete(y_train, delete, axis=0)
+
 def score(X_val, y_val, X_train, y_train):
+    """ RMSE scoring function """
     return math.sqrt(1/y_val.shape[0] * sum((y_val - get_bayes_prediction(X_train, y_train, X_val))**2))
 
-# Standard Bayesian regression model
 def get_bayes_prediction(X_temp, y_temp, X_val):
+    """ Standard Bayesian regression model """
 
     # Compute the prior standard deviation and covariance
     prior_std = np.std(X_temp, axis=0)
@@ -46,6 +71,18 @@ def get_bayes_prediction(X_temp, y_temp, X_val):
         predictions.append(np.dot(w_s.T,X_val.T))
 
     return np.mean(predictions, axis=0)
+
+# =============================================== CODE =================================================================
+
+# Set if the model is being evaluated
+evaluate = False
+VAL_EPOCHS = 30
+
+# Load training and testing data
+X_train = np.loadtxt('X_train.csv', delimiter=',', skiprows=1)
+X_test = np.loadtxt('X_test.csv', delimiter=',', skiprows=1)
+y_train = np.loadtxt('y_train.csv', delimiter=',', skiprows=1)[:,1]
+
 
 # Discard noisy features and datapoints
 X_train = np.delete(X_train, [2,5], axis=1)

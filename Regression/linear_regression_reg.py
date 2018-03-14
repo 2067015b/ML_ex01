@@ -1,20 +1,31 @@
 #!/usr/bin/env python
 import math
+import random
 import numpy as np
-from ML_ex01.Classification.utils import split_set, normalize_data
 
-# Set if the model is being evaluated
-evaluate = False
-VAL_EPOCHS = 3
+# ========================================== HELPER FUNCTIONS ==========================================================
 
-# Load training and testing data
-X_train = np.loadtxt('X_train.csv', delimiter=',', skiprows=1)
-X_test = np.loadtxt('X_test.csv', delimiter=',', skiprows=1)
-y_train = np.loadtxt('y_train.csv', delimiter=',', skiprows=1)[:,1]
+def split_set(x, y, val_size):
+    """ Split the given training set into a validation and training set. """
+    val_indices = random.sample(range(len(y)), k=val_size)
 
-X_train, X_test = normalize_data(X_train, X_test)
+    X_val = x[val_indices, :]
+    Y_val = y[val_indices]
+
+    y_temp = np.delete(y, val_indices, axis=0)
+    X_temp = np.delete(x, val_indices, axis=0)
+
+    return X_temp, y_temp, X_val, Y_val
+
+def normalize_data(X_train, X_test):
+    """ Normalize all feature values with respect to its maximum """
+    maximums_1 = X_train.max(axis=0)
+    maximums_2 = X_test.max(axis=0)
+    maximums = np.stack((maximums_1, maximums_2), axis=1).max(axis=1)
+    return X_train / maximums, X_test / maximums
 
 def get_predictions_SGD_l2(X_train, y_train, X_test, learning_rate=0.005, iterations=27500):
+    """ Gradient descent model for weights estimation that uses L2 regularization """
     X_train = np.concatenate((np.ones((X_train.shape[0],1)),X_train),axis=1)
     X_test = np.concatenate((np.ones((X_test.shape[0],1)),X_test),axis=1)
 
@@ -30,6 +41,7 @@ def get_predictions_SGD_l2(X_train, y_train, X_test, learning_rate=0.005, iterat
     return X_test.dot(weights)
 
 def get_predictions_SGD_l1(X_train, y_train, X_test, learning_rate=0.005, iterations=41000):
+    """ Gradient descent model for weights estimation that uses L1 regularization """
     X_train = np.concatenate((np.ones((X_train.shape[0],1)),X_train),axis=1)
     X_test = np.concatenate((np.ones((X_test.shape[0],1)),X_test),axis=1)
 
@@ -44,11 +56,24 @@ def get_predictions_SGD_l1(X_train, y_train, X_test, learning_rate=0.005, iterat
 
     return X_test.dot(weights)
 
-# RMSE scoring function
 def score(X_val, y_val, X_train, y_train, method):
+    """ RMSE scoring function """
     return math.sqrt(1 / y_val.shape[0] * sum((y_val - method(X_train, y_train, X_val)) ** 2))
 
+# ========================================== CODE ======================================================================
 
+# Set if the model is being evaluated
+evaluate = False
+VAL_EPOCHS = 3
+
+# Load training and testing data
+X_train = np.loadtxt('X_train.csv', delimiter=',', skiprows=1)
+X_test = np.loadtxt('X_test.csv', delimiter=',', skiprows=1)
+y_train = np.loadtxt('y_train.csv', delimiter=',', skiprows=1)[:,1]
+
+X_train, X_test = normalize_data(X_train, X_test)
+
+# Delete the noisy features (defined by doing an ablation study)
 X_train = np.delete(X_train, [2,5], axis=1)
 X_test = np.delete(X_test, [2,5], axis=1)
 
