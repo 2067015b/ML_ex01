@@ -76,7 +76,7 @@ def get_bayes_prediction(X_temp, y_temp, X_val):
 
 # Set if the model is being evaluated
 evaluate = False
-VAL_EPOCHS = 30
+VAL_EPOCHS = 300
 
 # Load training and testing data
 X_train = np.loadtxt('X_train.csv', delimiter=',', skiprows=1)

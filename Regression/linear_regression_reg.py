@@ -35,7 +35,8 @@ def get_predictions_SGD_l2(X_train, y_train, X_test, learning_rate=0.005, iterat
     for i in range(iterations):
         prediction = X_train.dot(weights)
         error = y_train - prediction
-        print("{} \terror: {}".format(i, np.mean(error.dot(X_train))))
+        if (i % 500 == 0):
+            print("{} \terror: {}".format(i, np.mean(error.dot(X_train))))
         weights += (learning_rate/sample_count) * (error.dot(X_train) + 12/sample_count * weights)
 
     return X_test.dot(weights)
@@ -51,20 +52,21 @@ def get_predictions_SGD_l1(X_train, y_train, X_test, learning_rate=0.005, iterat
     for i in range(iterations):
         prediction = X_train.dot(weights)
         error = y_train - prediction
-        print("{} \terror: {}".format(i, np.mean(error.dot(X_train))))
+        if (i % 500 == 0):
+            print("{} \terror: {}".format(i, np.mean(error.dot(X_train))))
         weights += (learning_rate/sample_count) * (error.dot(X_train) + 12/sample_count * np.sign(weights))
 
     return X_test.dot(weights)
 
-def score(X_val, y_val, X_train, y_train, method):
+def score(X_val, y_val, X_train, y_train, method, args=None):
     """ RMSE scoring function """
-    return math.sqrt(1 / y_val.shape[0] * sum((y_val - method(X_train, y_train, X_val)) ** 2))
+    return math.sqrt(1 / y_val.shape[0] * sum((y_val - method(X_train, y_train, X_val,*args)) ** 2))
 
 # ========================================== CODE ======================================================================
 
 # Set if the model is being evaluated
 evaluate = False
-VAL_EPOCHS = 3
+VAL_EPOCHS = 15
 
 # Load training and testing data
 X_train = np.loadtxt('X_train.csv', delimiter=',', skiprows=1)
@@ -96,7 +98,7 @@ if evaluate:
     for i in range(VAL_EPOCHS):
         print(i)
         X_temp, y_temp, X_val, Y_val = split_set(X_train, y_train, 17)
-        result += score(X_val, Y_val, X_temp, y_temp, get_predictions_SGD_l1)
+        result += score(X_val, Y_val, X_temp, y_temp, get_predictions_SGD_l1, (0.005, 41000))
     print(result/VAL_EPOCHS)
 
 # Fit the model and get predictions
